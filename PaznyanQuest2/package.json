@@ -1,0 +1,25 @@
+{
+  "name": "puzz-nyan-quest-2",
+  "productName": "Puzz Nyan Quest 2",
+  "version": "0.1.0",
+  "description": "パズにゃんクエスト２ 〜もちあげネコと ふういんの塔〜",
+  "main": "electron/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win dir",
+    "dist:mac": "electron-builder --mac dir",
+    "dist:linux": "electron-builder --linux dir",
+    "test": "node tools/replay.js"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.example.puzznyanquest2",
+    "productName": "Puzz Nyan Quest 2",
+    "files": ["index.html", "js/**", "electron/**"],
+    "directories": { "output": "dist" }
+  }
+}

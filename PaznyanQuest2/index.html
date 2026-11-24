@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<title>パズにゃんクエスト２ / Puzz Nyan Quest 2</title>
+<style>
+:root{--u:9.6px;--ink:#2b2030;--line:#111;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavior:none;touch-action:none;
+  font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic UI","Yu Gothic","Meiryo","Noto Sans JP","Noto Sans CJK JP",system-ui,sans-serif;font-weight:900}
+#game{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:960px;height:540px;overflow:hidden;background:#000}
+#cv{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+.layer{position:absolute;inset:0;pointer-events:none}
+.layer>*{pointer-events:auto}
+.hide{display:none!important}
+.pl{white-space:pre-line}
+/* 縁取り文字 */
+.ol{color:#fff;-webkit-text-stroke:calc(var(--u)*.45) var(--line);paint-order:stroke fill;text-shadow:0 calc(var(--u)*.4) 0 var(--line)}
+/* ボタン */
+.btn{display:block;min-width:calc(var(--u)*26);margin:calc(var(--u)*1.1) auto;padding:calc(var(--u)*1.2) calc(var(--u)*3);
+  font:inherit;font-size:calc(var(--u)*2.5);color:var(--ink);background:#fff;border:calc(var(--u)*.45) solid var(--line);border-radius:calc(var(--u)*1.6);
+  box-shadow:0 calc(var(--u)*.6) 0 var(--line);cursor:pointer;transition:transform .08s;white-space:pre-line;line-height:1.25}
+.btn:active{transform:translateY(calc(var(--u)*.4));box-shadow:0 calc(var(--u)*.2) 0 var(--line)}
+.btn.focus{background:#ffd23a;transform:scale(1.06)}
+.btn.small{min-width:0;font-size:calc(var(--u)*1.9);padding:calc(var(--u)*.8) calc(var(--u)*2)}
+.btn.sel{background:#7dd3ff}
+.panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff8ec;border:calc(var(--u)*.5) solid var(--line);
+  border-radius:calc(var(--u)*2.4);box-shadow:0 calc(var(--u)*.9) 0 var(--line);padding:calc(var(--u)*2.2) calc(var(--u)*3.4);text-align:center;color:var(--ink);max-height:94%;overflow:auto}
+.panel h2{margin:0 0 calc(var(--u)*1.2);font-size:calc(var(--u)*3.2)}
+.dim{position:absolute;inset:0;background:rgba(10,6,20,.55)}
+/* タイトル */
+#title{text-align:center}
+#logo{position:absolute;top:8%;left:0;right:0;font-size:calc(var(--u)*7.6);letter-spacing:.02em;line-height:1}
+#logo span{display:inline-block;animation:bob 1.6s ease-in-out infinite;animation-delay:var(--d);color:var(--c)}
+#logo .two{font-size:1.25em;color:#ffd23a}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(calc(var(--u)*-1))}}
+#logoJa{position:absolute;top:25%;left:0;right:0;font-size:calc(var(--u)*3.2)}
+#tagline{position:absolute;top:32%;left:0;right:0;font-size:calc(var(--u)*2.1)}
+#pressStart{position:absolute;bottom:14%;left:0;right:0;font-size:calc(var(--u)*2.8);animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+#titleMenu{position:absolute;bottom:7%;left:0;right:0}
+#titleMenu .btn{margin:calc(var(--u)*.8) auto}
+#ver{position:absolute;right:calc(var(--u)*1);bottom:calc(var(--u)*.6);font-size:calc(var(--u)*1.3);color:#fff;opacity:.7}
+/* 言語 */
+#langs{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*1.2);margin-top:calc(var(--u)*1)}
+#langs .btn{margin:0;min-width:calc(var(--u)*22)}
+/* セーブ */
+#slotList{display:flex;gap:calc(var(--u)*1.6);justify-content:center}
+.slot{width:calc(var(--u)*24);margin:0;padding:calc(var(--u)*1.4);text-align:left;font-size:calc(var(--u)*1.9)}
+.slot b{display:block;font-size:calc(var(--u)*2.4);margin-bottom:calc(var(--u)*.6)}
+.slot .gem{color:#1f9ab8}
+.slotDel{margin-top:calc(var(--u)*1.4)}
+/* HUD */
+#hud{font-size:calc(var(--u)*2)}
+#hudName{position:absolute;left:calc(var(--u)*1.2);top:calc(var(--u)*.8);font-size:calc(var(--u)*2.2);pointer-events:none}
+#hudRight{position:absolute;right:calc(var(--u)*1);top:calc(var(--u)*.6);display:flex;gap:calc(var(--u)*1);align-items:center}
+#hudGems{background:#fff;border:calc(var(--u)*.35) solid var(--line);border-radius:999px;padding:calc(var(--u)*.2) calc(var(--u)*1.4);color:#1f9ab8;font-size:calc(var(--u)*2)}
+#hudCost{border:calc(var(--u)*.35) solid var(--line);border-radius:999px;padding:calc(var(--u)*.2) calc(var(--u)*1.2);color:#fff;font-size:calc(var(--u)*1.7)}
+#hudCost.n{background:#e8484f}#hudCost.p{background:#ff8a1f}#hudCost.s{background:#3d8bff}
+#btnMenu{width:calc(var(--u)*5);height:calc(var(--u)*5);margin:0;min-width:0;padding:0;font-size:calc(var(--u)*2.4);border-radius:calc(var(--u)*1.2);box-shadow:0 calc(var(--u)*.35) 0 var(--line)}
+#hint{position:absolute;left:50%;bottom:calc(var(--u)*2);transform:translateX(-50%);background:rgba(255,248,236,.95);border:calc(var(--u)*.4) solid var(--line);
+  border-radius:calc(var(--u)*1.6);padding:calc(var(--u)*1) calc(var(--u)*2.4);color:var(--ink);font-size:calc(var(--u)*2);text-align:center;transition:opacity .5s;pointer-events:none;line-height:1.35}
+#hint.fade{opacity:0}
+#toast{position:absolute;left:50%;top:calc(var(--u)*8);transform:translate(-50%,0) scale(.8);background:#fff;border:calc(var(--u)*.4) solid var(--line);border-radius:calc(var(--u)*1.4);
+  padding:calc(var(--u)*.8) calc(var(--u)*2.4);font-size:calc(var(--u)*2.2);color:var(--ink);opacity:0;transition:all .18s;pointer-events:none;text-align:center;line-height:1.3}
+#toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
+/* マップの情報 */
+#mapInfo{position:absolute;left:50%;bottom:calc(var(--u)*1.4);transform:translateX(-50%);min-width:calc(var(--u)*46);background:rgba(255,248,236,.96);
+  border:calc(var(--u)*.45) solid var(--line);border-radius:calc(var(--u)*1.8);box-shadow:0 calc(var(--u)*.6) 0 var(--line);padding:calc(var(--u)*1) calc(var(--u)*2.4);color:var(--ink);text-align:center}
+#miKind{font-size:calc(var(--u)*1.6);color:#8a6f9a}
+#miName{font-size:calc(var(--u)*2.8);margin:calc(var(--u)*.2) 0}
+#miStat{font-size:calc(var(--u)*1.8)}
+#miPlay{display:inline-block;margin-top:calc(var(--u)*.6)}
+#mapTop{position:absolute;left:calc(var(--u)*1.2);top:calc(var(--u)*.8);font-size:calc(var(--u)*1.7);pointer-events:none}
+/* クリア */
+#clearBig{font-size:calc(var(--u)*6.4);margin-bottom:calc(var(--u)*1);white-space:nowrap}
+#clearBig span{display:inline-block;animation:drop .5s cubic-bezier(.3,1.6,.5,1) both,hue 1.2s linear infinite;animation-delay:var(--d),0s;color:var(--c)}
+@keyframes drop{from{transform:translateY(calc(var(--u)*-20));opacity:0}to{transform:none;opacity:1}}
+@keyframes hue{to{filter:hue-rotate(360deg)}}
+#clear .panel{background:transparent;border:none;box-shadow:none}
+#clearSub{font-size:calc(var(--u)*3)}
+/* 設定 */
+.row{display:flex;align-items:center;justify-content:space-between;gap:calc(var(--u)*2);margin:calc(var(--u)*.6) 0;font-size:calc(var(--u)*2.1)}
+.row .btn{margin:0;min-width:calc(var(--u)*24);white-space:nowrap;font-size:calc(var(--u)*1.9);padding:calc(var(--u)*.6) calc(var(--u)*1.6)}
+#settings .row{margin:calc(var(--u)*.9) 0;font-size:calc(var(--u)*1.9)}
+#settings h2,#pause h2{margin-bottom:calc(var(--u)*.6)}
+#pauseBtns .btn{margin:calc(var(--u)*.7) auto;min-width:calc(var(--u)*24)}
+/* 操作説明 */
+#ctlTable{border-collapse:collapse;font-size:calc(var(--u)*1.8);margin:0 auto}
+#ctlTable td,#ctlTable th{border-bottom:calc(var(--u)*.2) solid #e0d4c0;padding:calc(var(--u)*.5) calc(var(--u)*1.2);text-align:left}
+#ctlTable th{color:#8a6f9a}
+/* ストーリー */
+#storyText{font-size:calc(var(--u)*2.8);line-height:1.6;color:#fff;text-align:center}
+/* タッチ操作 */
+#touch{position:fixed;inset:0;pointer-events:none;z-index:5}
+#touch>*{pointer-events:auto;position:absolute}
+#pad{left:max(2vmin,env(safe-area-inset-left));bottom:4vmin;width:34vmin;height:34vmin;border-radius:50%;background:rgba(255,255,255,.14);touch-action:none}
+#pad::before{content:"";position:absolute;left:33%;top:4%;width:34%;height:92%;background:rgba(255,255,255,.55);border:.6vmin solid rgba(0,0,0,.6);border-radius:2vmin}
+#pad::after{content:"";position:absolute;top:33%;left:4%;height:34%;width:92%;background:rgba(255,255,255,.55);border:.6vmin solid rgba(0,0,0,.6);border-radius:2vmin}
+#pad i{position:absolute;z-index:1;width:0;height:0;border:2.6vmin solid transparent}
+#pad i.u{left:50%;top:9%;transform:translateX(-50%);border-bottom-color:rgba(0,0,0,.55)}
+#pad i.d{left:50%;bottom:9%;transform:translateX(-50%);border-top-color:rgba(0,0,0,.55)}
+#pad i.l{top:50%;left:9%;transform:translateY(-50%);border-right-color:rgba(0,0,0,.55)}
+#pad i.r{top:50%;right:9%;transform:translateY(-50%);border-left-color:rgba(0,0,0,.55)}
+#pad[data-dir=up] i.u,#pad[data-dir=down] i.d,#pad[data-dir=left] i.l,#pad[data-dir=right] i.r{border-bottom-color:#ff8a1f;border-top-color:#ff8a1f;border-left-color:#ff8a1f;border-right-color:#ff8a1f}
+.tb{display:flex;align-items:center;justify-content:center;border-radius:50%;border:.7vmin solid rgba(0,0,0,.65);color:#2b2030;font-weight:900;touch-action:none;text-align:center;line-height:1}
+.tb.on{filter:brightness(.8);transform:scale(.94)}
+#tA{right:max(3vmin,env(safe-area-inset-right));bottom:6vmin;width:17vmin;height:17vmin;background:rgba(255,210,58,.88);font-size:3.6vmin}
+#tB{right:calc(max(3vmin,env(safe-area-inset-right)) + 19vmin);bottom:3vmin;width:14vmin;height:14vmin;background:rgba(125,211,255,.85);font-size:2.8vmin}
+#tB.off{opacity:.35}
+#tX{right:calc(max(3vmin,env(safe-area-inset-right)) + 18vmin);bottom:20vmin;width:10vmin;height:10vmin;background:rgba(255,255,255,.8);font-size:2.2vmin}
+#tR{right:max(3vmin,env(safe-area-inset-right));bottom:26vmin;width:11vmin;height:11vmin;background:rgba(255,255,255,.8);font-size:1.7vmin;letter-spacing:-.05em}
+/* 縦向きの注意 */
+#rotate{position:fixed;inset:0;z-index:20;background:#1b1530;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font-size:6vmin;white-space:pre-line}
+#rotate i{display:block;font-style:normal;font-size:16vmin;margin-bottom:3vmin;animation:rot 2s ease-in-out infinite}
+@keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div id="game">
+  <canvas id="cv" width="480" height="270"></canvas>
+
+  <!-- タイトル -->
+  <div id="title" class="layer hide">
+    <div id="logo" class="ol"></div>
+    <div id="logoJa" class="ol">パズにゃんクエスト２</div>
+    <div id="tagline" class="ol pl"></div>
+    <div id="pressStart" class="ol pl"></div>
+    <div id="titleMenu" class="hide">
+      <button class="btn" data-act="start" data-t="start"></button>
+      <button class="btn" data-act="settings" data-t="settings"></button>
+      <button class="btn" data-act="quit" data-t="quitGame" id="btnQuit"></button>
+    </div>
+    <div id="ver">ver 0.1 (序盤)</div>
+  </div>
+
+  <!-- 言語選択(はじめての起動のときだけ) -->
+  <div id="langSel" class="layer hide">
+    <div class="dim"></div>
+    <div class="panel">
+      <h2>ことば / Language</h2>
+      <div id="langs"></div>
+    </div>
+  </div>
+
+  <!-- セーブ選択 -->
+  <div id="slots" class="layer hide">
+    <div class="dim"></div>
+    <div class="panel">
+      <h2 data-t="slotTitle"></h2>
+      <div id="slotList"></div>
+      <div class="slotDel"><button class="btn small" data-act="back" data-t="back"></button></div>
+    </div>
+  </div>
+
+  <!-- ストーリー -->
+  <div id="story" class="layer hide">
+    <div class="dim" style="background:rgba(10,6,20,.8)"></div>
+    <div class="panel" style="background:transparent;border:none;box-shadow:none">
+      <div id="storyText" class="ol pl"></div>
+      <button class="btn" data-act="next" data-t="tapNext"></button>
+    </div>
+  </div>
+
+  <!-- HUD(マップ・ステージ共通) -->
+  <div id="hud" class="layer hide">
+    <div id="hudName" class="ol"></div>
+    <div id="mapTop" class="ol pl hide"></div>
+    <div id="hudRight">
+      <div id="hudCost" class="n"></div>
+      <div id="hudGems">◆ 0</div>
+      <button class="btn" id="btnMenu" data-act="menu">☰</button>
+    </div>
+    <div id="hint" class="pl fade"></div>
+    <div id="mapInfo" class="hide">
+      <div id="miKind"></div>
+      <div id="miName"></div>
+      <div id="miStat" class="pl"></div>
+      <button class="btn small" id="miPlay" data-act="play"></button>
+    </div>
+  </div>
+
+  <div id="toast" class="pl"></div>
+
+  <!-- ポーズメニュー -->
+  <div id="pause" class="layer hide">
+    <div class="dim"></div>
+    <div class="panel">
+      <h2 data-t="pause"></h2>
+      <div id="pauseBtns"></div>
+    </div>
+  </div>
+
+  <!-- 設定 -->
+  <div id="settings" class="layer hide">
+    <div class="dim"></div>
+    <div class="panel">
+      <h2 data-t="settings"></h2>
+      <div class="row"><span data-t="lang"></span><button class="btn" data-set="lang"></button></div>
+      <div class="row"><span data-t="bgm"></span><button class="btn" data-set="bgm"></button></div>
+      <div class="row"><span data-t="se"></span><button class="btn" data-set="se"></button></div>
+      <div class="row"><span data-t="touchPad"></span><button class="btn" data-set="touch"></button></div>
+      <div class="row" id="rowFs"><span data-t="fullscreen"></span><button class="btn" data-set="fs"></button></div>
+      <button class="btn small" data-act="close" data-t="close"></button>
+    </div>
+  </div>
+
+  <!-- 操作説明 -->
+  <div id="controls" class="layer hide">
+    <div class="dim"></div>
+    <div class="panel">
+      <h2 data-t="controls"></h2>
+      <table id="ctlTable"></table>
+      <button class="btn small" data-act="close" data-t="close"></button>
+    </div>
+  </div>
+
+  <!-- 確認 -->
+  <div id="confirm" class="layer hide">
+    <div class="dim"></div>
+    <div class="panel">
+      <h2 id="confirmText" class="pl"></h2>
+      <div style="display:flex;gap:calc(var(--u)*2);justify-content:center">
+        <button class="btn small" data-act="yes" data-t="yes"></button>
+        <button class="btn small" data-act="no" data-t="no"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- クリア -->
+  <div id="clear" class="layer hide">
+    <div class="dim" style="background:rgba(10,6,20,.35)"></div>
+    <div class="panel">
+      <div id="clearBig" class="ol"></div>
+      <div id="clearSub" class="ol pl"></div>
+      <button class="btn" data-act="ok" data-t="ok"></button>
+    </div>
+  </div>
+</div>
+
+<!-- タッチ操作 -->
+<div id="touch" class="hide">
+  <div id="pad"><i class="u"></i><i class="d"></i><i class="l"></i><i class="r"></i></div>
+  <div class="tb" id="tA" data-btn="a"></div>
+  <div class="tb" id="tB" data-btn="b"></div>
+  <div class="tb" id="tX" data-btn="x"></div>
+  <div class="tb" id="tR" data-btn="reset"></div>
+</div>
+
+<div id="rotate" class="hide"><div><i>📱</i><span id="rotateText"></span></div></div>
+
+<script src="js/i18n.js"></script>
+<script src="js/logic.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/art.js"></script>
+<script src="js/input.js"></script>
+<script src="js/game.js"></script>
+<script src="js/map.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
